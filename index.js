@@ -1,75 +1,83 @@
-// import http from 'node:http'
-
-//  const server = http.createServer((req, res) => {
-//     res.end ("hello world!")
-//  })
-// import { createServer } from 'node:http' //destructuration
-
-//expres js est un ensemble de middleware
-//un middleware est une fonction qui prend 3 parametres
-//middleware(req, res ,next) next permet d'appeler le middleware suivant
-
-
-
-
-// app.post('/', (req, res) => {
-  //   res.end('POST : /')
-  // })
-  
-  // app.get('/personne', (req, res) => {
-    //   res.end('GET : /personne')
-    // })
-    
-    // app.get('/formation', (req, res) => {
-      //   res.end('GET : /formation')
-      // })
 import express from 'express'
 import 'dotenv/config'
 
 const app = express()
 
-const m1 = (req, res, next) => {
-    console.log("Middleware : m1");
-    next()
-}
-
-const m2 = (req, res, next) => {
-    console.log("Middleware : m2");
-    next()
-}
-
-const m3 = (req, res) => {
-    console.log("Middleware : m3");
-}
-
-app.get('/', (req, res, next) => {
+app.get('/', (req, res) => {
     console.log("GET : /")
     res.end("GET : /")
-    next()
+
 })
-// }, [m2, m1])
-// app.use(m1)
+app.route(['/home', '/accueil'])
+    .get((req, res) => {
+        console.log(`GET : ${req.url}`)
+        res
+        .type("html")
+        .sendFile(import.meta.dirname + '/index.html')
+      //  res.end(`GET : ${req.url}`)
+        // next()
+    })
+    .post((req, res) => {
+        console.log(`POST : ${req.url}`)
+        res.end(`POST : ${req.url}`)
+        // next()
+    })
 
 
-// app.use(m2)
+app.all("/personne", (req, res) => {
+    console.log(`${req.method} : ${req.url}`)
+    res.end(`${req.method} : ${req.url}`)
+})
 
-app.use([m1, m3, m2])
+app.all("/adresse", (req, res) => {
+    console.log(`${req.method} : ${req.url}`)
+    res.end(`Ici c'est  ${req.query[`ville`]}- ${req.query.cp}`)
+})
+app.all("/adresse/:ville/:cp", (req, res) => {
+    console.log(`${req.method} : ${req.url}`)
+    res.end(`Ici c'est  ${req.params[`ville`]}- ${req.params.cp}`)
+})
+
+app.get('/calcul/:op', (req, res) => {
+    const { a, b } = req.query
+    switch (req.params.op) {
+        case 'plus': res.end(`${a} + ${b} = ${Number(a) + Number(b)}`); break;
+        case 'moins': res.end(`${a} - ${b} = ${Number(a) - Number(b)}`); break;
+        case 'fois': res.end(`${a} * ${b} = ${Number(a) * Number(b)}`); break;
+        case 'div': res.end(`${a} / ${b} = ${Number(a) / Number(b)}`); break;
+        default: res.end(`L'opérateur ${req.params.op} est inconnu`)
+    }
+})
+
+
+// app.get(['/home', '/accueil'], (req, res) => {
+//     console.log(`GET : ${req.url}`)
+//     res.end(`GET : ${req.url}`)
+//     // next()
+// })
+// app.post(['/home', '/accueil'], (req, res) => {
+//     console.log(`POST : ${req.url}`)
+//     res.end(`POST : ${req.url}`)
+//     // next()
+// })
+
+// middleware pour les routes restantes : à placer en dernier
+app.get('/*splat', (req, res) => {
+    console.log("GET : La route demandée n'existe pas")
+    res
+    //     .sendStatus(404)
+    // res
+    // .status(404)
+     .status(404)
+        .json({
+            "Erreur" : "La page demandée n'existe pas"
+        })
+    res.end("GET : La route demandée n'existe pas")
+
+})
+
 const PORT = process.env.PORT || 5000
 
 app.listen(PORT, () => {
     console.log(`Adresse serveur : http://localhost:${PORT}`);
 })
-// app.use(m1)
-
-
-// app.use(m2)
-// const server = createServer((req, res) => {
-//     res.end("Hello world!")
-// })
-
-// const PORT = process.env.PORT || 5000
-
-//  server.listen(PORT, ()=>{
-//     console.log(`adresse serveur : http://localhost:${PORT}`);
-    
-//  })
